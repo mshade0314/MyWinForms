@@ -33,40 +33,33 @@ namespace MyWinForms
             this.btnStop.Enabled = true;
         }
 
-        private void btnStart_Click(object sender, EventArgs e)
-        {            
+        private async void btnStart_ClickAsync(object sender, EventArgs e)
+        {
             this.FrmState.Process(this);
 
-            var complete = HeavyMethod();
-
+            _cts = new CancellationTokenSource();
+            var complete = await HeavyMethodAsync(_cts.Token);
             MessageBox.Show(complete ? "処理が完了しました" : "処理を中断しました");
 
             this.FrmState.Idle(this);
         }
 
-        private bool HeavyMethod()
-        {
-            Thread.Sleep(5 * 1000);
-            return !_cancelled;
-        }
-
-        private bool _cancelled = false;
         private void btnStop_Click(object sender, EventArgs e)
         {
-            _cancelled = true;
+            _cts.Cancel();
         }
 
         private async Task<bool> HeavyMethodAsync(CancellationToken token)
         {
             try
-            {                
+            {
                 await Task.Delay(5 * 1000, token);
                 return true;
             }
             catch (OperationCanceledException)
             {
                 return false;
-            }            
+            }
         }
     }
 
